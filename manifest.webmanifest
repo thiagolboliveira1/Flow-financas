@@ -1,9 +1,10 @@
 
 {
-  "name": "FLOW",
+  "name": "FLOW Financeiro",
   "short_name": "FLOW",
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#F5F5F7",
-  "theme_color": "#9F7AEA"
+  "background_color": "#ffffff",
+  "theme_color": "#9F7AEA",
+  "icons": []
 }
