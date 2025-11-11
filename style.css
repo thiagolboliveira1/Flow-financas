@@ -1,0 +1,19 @@
+
+:root {
+  --primary: #9F7AEA;
+  --bg-light: #F5F5F7;
+  --bg-dark: #0E0E12;
+  --card-light: #FFFFFF;
+  --card-dark: #1F1F25;
+}
+
+body[data-theme="light"] { background: var(--bg-light); color: #111; }
+body[data-theme="dark"] { background: var(--bg-dark); color: #eee; }
+
+header { display:flex; justify-content:space-between; padding:20px; font-size:28px; }
+.top-buttons { display:flex; gap:8px; padding:20px; }
+.top-buttons button { padding:12px; background:var(--primary); border:none; color:white; border-radius:8px; }
+.card { background:var(--card-light); padding:16px; border-radius:12px; margin:8px 20px; }
+.goal { padding:20px; }
+.progress { background:#ddd; height:12px; margin-top:10px; border-radius:6px; }
+.progress div { background:var(--primary); width:50%; height:12px; border-radius:6px; }

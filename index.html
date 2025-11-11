@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLOW — Financeiro</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="app.js"></script>
+</head>
+<body>
+<header>
+  <h1>FLOW</h1>
+  <button id="themeToggle">🌙</button>
+</header>
+
+<main>
+  <div class="top-buttons">
+    <button>+ Receita</button>
+    <button>- Despesa</button>
+    <button>+ Meta</button>
+    <button>+ Cartão</button>
+  </div>
+
+  <section class="kpis">
+    <div class="card">Ganhos do mês: <b id="kpiGains">--</b></div>
+    <div class="card">Gastos do mês: <b id="kpiExpenses">--</b></div>
+    <div class="card">Saldo do mês: <b id="kpiBalance">--</b></div>
+  </section>
+
+  <section class="goal">
+    <h2>🎯 Meta principal</h2>
+    <p id="goalName">Moto Kawasaki</p>
+    <p id="goalProgressText">Progresso: R$ -- / R$ --</p>
+    <div class="progress"><div id="goalBar"></div></div>
+    <div class="goal-actions">
+      <button>Depositar valor</button>
+      <button>Adicionar depósito</button>
+    </div>
+  </section>
+
+  <section class="graph">
+    <h3>📊 Gastos por categoria</h3>
+    <canvas id="pieChart"></canvas>
+    <ul id="categorySummary"></ul>
+  </section>
+
+</main>
+</body>
+</html>
