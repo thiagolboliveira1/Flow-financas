@@ -1,40 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FLOW | Finanças</title>
+  <title>Flow</title>
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
-<header>
-  <h1>FLOW — Dashboard</h1>
-</header>
+  <header class="app-header">
+    <h1>Flow</h1>
+    <button id="themeToggle">🌙</button>
+  </header>
 
-<section class="kpis">
-  <div class="kpi"><h3>Entradas</h3><span id="incomeValue">R$ 0</span></div>
-  <div class="kpi"><h3>Saídas</h3><span id="expenseValue">R$ 0</span></div>
-  <div class="kpi"><h3>Saldo</h3><span id="balanceValue">R$ 0</span></div>
-</section>
+  <main>
+    <section class="kpis">
+      <div class="card"><h3>Entradas</h3><span id="incomeValue">R$ 0</span></div>
+      <div class="card"><h3>Saídas</h3><span id="expenseValue">R$ 0</span></div>
+      <div class="card"><h3>Saldo</h3><span id="balanceValue">R$ 0</span></div>
+    </section>
 
-<section class="goals">
-  <h2>Meta Principal</h2>
-  <progress id="goalProgress" value="0" max="100"></progress>
-  <p id="goalLabel">Meta: R$ 0 / R$ 0</p>
-</section>
+    <section class="goal">
+      <h2>🎯 Meta Principal</h2>
+      <progress id="goalProgress" value="0" max="100"></progress>
+      <p id="goalLabel">Meta: R$ 0 / R$ 0</p>
+      <button id="addGoal">+ Adicionar Meta</button>
+    </section>
 
-<section class="actions">
-  <button id="addIncome">+ Receita</button>
-  <button id="addExpense">- Despesa</button>
-</section>
+    <section class="actions">
+      <button id="addIncome">+ Receita</button>
+      <button id="addExpense">- Despesa</button>
+      <button id="importData">📦 Importar Família Oliveira</button>
+    </section>
+  </main>
 
-<!-- Firebase (compat, funciona direto no navegador) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="app.js"></script>
-
-
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
