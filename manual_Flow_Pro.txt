@@ -1,0 +1,56 @@
+📘 FLOW — Manual Profissional (v10 FULL iPhoneReady)
+
+👋 Bem-vindo ao Flow!
+O Flow é um aplicativo financeiro pessoal e familiar moderno, criado para iPhone e PWA (instalável direto no Safari).
+
+──────────────────────────────
+🔧 Instalação no iPhone
+1. Acesse o seu link do Flow (ex: https://thiagolboliveira1.github.io/Flow-financas/)
+2. Toque no botão de “Compartilhar” (ícone com seta para cima)
+3. Escolha “Adicionar à Tela de Início”
+4. O Flow abrirá como um app completo, em tela cheia
+5. Faça login automático (Thiago) ou crie uma nova conta
+
+──────────────────────────────
+💾 Modo Offline e Backup Local
+- O Flow salva automaticamente seus dados no iPhone (IndexedDB)
+- Você pode usar normalmente mesmo sem internet
+- Quando o iPhone reconectar, os dados são sincronizados com o Firebase
+
+──────────────────────────────
+💰 Recursos Principais
+✅ Controle de receitas e despesas
+✅ Dashboard com entradas, saídas e saldo
+✅ Metas financeiras com barra de progresso
+✅ Importação automática de dados da Família Oliveira
+✅ Login automático
+✅ Sincronização com Firebase
+✅ Funciona offline
+
+──────────────────────────────
+📦 Estrutura do App
+index.html  
+style.css  
+app.js  
+manifest.webmanifest  
+icon-512.png  
+icon-192.png  
+manual_Flow_Pro.txt  
+README.txt  
+
+──────────────────────────────
+💼 Guia de Venda Profissional
+1. Faça login no https://firebase.google.com e crie um novo projeto
+2. Copie o código de configuração do novo projeto Firebase
+3. Substitua as credenciais no arquivo app.js
+4. Personalize cores e nome no style.css e manifest.webmanifest
+5. Suba o app no GitHub Pages
+6. Venda como “App de Controle Financeiro Personalizado”
+
+──────────────────────────────
+📞 Suporte e Contato
+E-mail de referência: thiago.oliveira20251014@gmail.com
+
+──────────────────────────────
+Feito com excelência e propósito ✨
+Thiago Oliveira Designer de Interiores
