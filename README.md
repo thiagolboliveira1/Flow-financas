@@ -1,49 +1,19 @@
-FLOW v10 FULL — iPhone Ready (PWA)
-───────────────────────────────
-Autor: Thiago Oliveira Designer de Interiores
-Versão: 10.0 (Final)
-Data: 12/11/2025
+# FLOW — Finanças (PWA starter)
 
-───────────────────────────────
-📱 Descrição
-O Flow é um aplicativo financeiro moderno desenvolvido como PWA (Progressive Web App).
-Funciona 100% no iPhone, com suporte offline, backup local e integração com Firebase.
+Projeto starter do app financeiro "FLOW" (PWA). 
+Arquivos:
+- index.html
+- style.css
+- app.js
+- manifest.webmanifest
 
-───────────────────────────────
-🚀 Recursos
-✅ Dashboard com Entradas, Saídas e Saldo
-✅ Metas financeiras com barra de progresso
-✅ Importação de dados automáticos (Família Oliveira)
-✅ Sincronização Firebase (modo online e offline)
-✅ Login automático
-✅ Interface clean, leve e responsiva
-✅ Tema “Flow Light” (roxo suave com cinza claro)
-✅ Pronto para instalação via Safari (Adicionar à Tela de Início)
+## Como usar (resumo)
+1. Habilite Email/Password no Firebase Authentication.
+2. Cole sua `firebaseConfig` no `app.js`.
+3. Ajuste regras do Firestore (temporariamente aceitar auth users).
+4. Suba os arquivos no GitHub Pages (branch `main`).
+5. Abra `https://<seu-usuario>.github.io/<repo>/` no iPhone e adicione à tela inicial.
 
-───────────────────────────────
-📦 Estrutura do Projeto
-index.html — estrutura principal do app  
-style.css — tema e layout visual  
-app.js — lógica do sistema e conexão Firebase  
-manifest.webmanifest — define o comportamento como app  
-icon-512.png / icon-192.png — ícones de instalação  
-manual_Flow_Pro.txt — manual completo de uso e venda  
-README.txt — este arquivo  
-
-───────────────────────────────
-💡 Instalação (no iPhone)
-1. Acesse o link do app publicado no GitHub Pages  
-   (exemplo: https://seuusuario.github.io/Flow-financas/)
-2. Toque em “Compartilhar” → “Adicionar à Tela de Início”
-3. O Flow abrirá como um aplicativo completo
-4. Login automático será feito (Thiago) ou crie uma conta
-
-───────────────────────────────
-🔧 Personalização
-- Altere o nome, cores e ícone no arquivo manifest.webmanifest  
-- Atualize suas credenciais Firebase no arquivo app.js  
-- Suba o projeto no seu GitHub Pages
-
-───────────────────────────────
-📞 Suporte e Contato
-E-mail: thiago.oliveira20251014@gmail.com
+## Notas
+- O import adiciona um lote de contas baseado nas informações fornecidas.
+- Depois eu ajudo a tornar regras mais restritas e backup/export CSV.
