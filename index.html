@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flow</title>
-  <link rel="manifest" href="manifest.webmanifest" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FLOW | Finanças</title>
+
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
 </head>
+
 <body>
   <header class="app-header">
-    <h1>Flow</h1>
-    <button id="themeToggle">🌙</button>
+    <h1>FLOW</h1>
+    <button id="themeToggle" aria-label="Alternar tema">🌙</button>
   </header>
 
   <main>
+    <!-- KPIs -->
     <section class="kpis">
       <div class="card"><h3>Entradas</h3><span id="incomeValue">R$ 0</span></div>
       <div class="card"><h3>Saídas</h3><span id="expenseValue">R$ 0</span></div>
       <div class="card"><h3>Saldo</h3><span id="balanceValue">R$ 0</span></div>
     </section>
 
+    <!-- Meta -->
     <section class="goal">
       <h2>🎯 Meta Principal</h2>
       <progress id="goalProgress" value="0" max="100"></progress>
@@ -27,19 +31,42 @@
       <button id="addGoal">+ Adicionar Meta</button>
     </section>
 
+    <!-- Ações -->
     <section class="actions">
       <button id="addIncome">+ Receita</button>
-      <button id="addExpense">- Despesa</button>
+      <button id="addExpense">− Despesa</button>
       <button id="importData">📦 Importar Família Oliveira</button>
       <p id="importStatus" class="muted"></p>
-
     </section>
+
+    <!-- Listagem de contas (será adicionada dinamicamente) -->
   </main>
 
-  <!-- Firebase -->
+  <!-- Modal de autenticação -->
+  <div id="authModal" class="auth-modal" aria-hidden="true">
+    <div class="auth-card">
+      <h2>Entrar no FLOW</h2>
+      <input id="email" type="email" placeholder="Seu e-mail" />
+      <input id="password" type="password" placeholder="Sua senha" />
+      <div class="row">
+        <button id="btnSignIn">Entrar</button>
+        <button id="btnSignUp">Criar conta</button>
+      </div>
+      <p id="authMsg" class="muted"></p>
+    </div>
+  </div>
+
+  <!-- Barra usuário -->
+  <div id="userBar" class="userbar" style="display:none">
+    <span id="userEmail"></span>
+    <button id="btnSignOut">Sair</button>
+  </div>
+
+  <!-- Firebase compat scripts (funciona direto no navegador) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
   <script src="app.js"></script>
 </body>
 </html>
