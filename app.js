@@ -1,252 +1,305 @@
-// app.js - Flow PWA (compat SDK)
-// -------------------------------
-// >>> Antes de rodar: cole sua firebaseConfig abaixo <<<
+// =========================================
+//  FLOW — APP.JS COMPLETO E OTIMIZADO
+//  Thiago Oliveira — 2025
+// =========================================
+
+
+// -----------------------------------------------------
+// 1) CONFIGURAÇÃO DO FIREBASE
+// -----------------------------------------------------
 
 const firebaseConfig = {
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // permite leitura/escrita apenas para usuários autenticados
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
+  apiKey: "AIzaSyCrxOosiL8YqIB8yf5v9xq0Dje_AiE31pU",
+  authDomain: "flow-financeiro-61209.firebaseapp.com",
+  projectId: "flow-financeiro-61209",
+  storageBucket: "flow-financeiro-61209.firebasestorage.app",
+  messagingSenderId: "370100494331",
+  appId: "1:370100494331:web:b4eaad52efa988ab15355e"
+};
 
-// Inicializa Firebase (compat)
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// DOM refs
-const authModal = document.getElementById('authModal');
-const emailEl = document.getElementById('email');
-const passEl = document.getElementById('password');
-const btnSignIn = document.getElementById('btnSignIn');
-const btnSignUp = document.getElementById('btnSignUp');
-const authMsg = document.getElementById('authMsg');
-const userBar = document.getElementById('userBar');
-const userEmail = document.getElementById('userEmail');
-const btnSignOut = document.getElementById('btnSignOut');
 
-const incomeValue = document.getElementById('incomeValue');
-const expenseValue = document.getElementById('expenseValue');
-const balanceValue = document.getElementById('balanceValue');
 
-const addIncomeBtn = document.getElementById('addIncome');
-const addExpenseBtn = document.getElementById('addExpense');
-const importBtn = document.getElementById('importData');
-const importStatus = document.getElementById('importStatus');
+// -----------------------------------------------------
+// 2) CONTROLE DE AUTENTICAÇÃO
+// -----------------------------------------------------
 
-const goalProgress = document.getElementById('goalProgress');
-const goalLabel = document.getElementById('goalLabel');
-const addGoalBtn = document.getElementById('addGoal');
-
-// --- Auth UI ---
-function showAuth(show){
-  authModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+function showAuthModal(show = true) {
+  const modal = document.getElementById("authModal");
+  if (!modal) return;
+  modal.style.display = show ? "flex" : "none";
 }
-auth.onAuthStateChanged(user => {
-  if(user){
-    showAuth(false);
-    userBar.style.display = 'flex';
-    userEmail.textContent = user.email;
-    // render data
-    renderContas();
-    renderGoal();
+
+function updateUserBar(user) {
+  const bar = document.getElementById("userBar");
+  const emailLabel = document.getElementById("userEmail");
+
+  if (user) {
+    emailLabel.textContent = user.email;
+    bar.style.display = "flex";
   } else {
-    userBar.style.display = 'none';
-    // pedir login
-    showAuth(true);
+    bar.style.display = "none";
   }
-});
+}
 
-btnSignUp.addEventListener('click', async () => {
-  const email = emailEl.value.trim();
-  const pass = passEl.value;
-  if(!email || !pass) return authMsg.textContent = 'Preencha e-mail e senha.';
-  try{
-    await auth.createUserWithEmailAndPassword(email, pass);
-    authMsg.textContent = 'Conta criada e logado!';
-  }catch(e){
-    authMsg.textContent = e.message;
-  }
-});
+// LOGIN
+document.getElementById("btnSignIn").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const msg = document.getElementById("authMsg");
 
-btnSignIn.addEventListener('click', async () => {
-  const email = emailEl.value.trim();
-  const pass = passEl.value;
-  if(!email || !pass) return authMsg.textContent = 'Preencha e-mail e senha.';
-  try{
+  try {
     await auth.signInWithEmailAndPassword(email, pass);
-    authMsg.textContent = '';
-  }catch(e){
-    authMsg.textContent = e.message;
+    msg.textContent = "";
+  } catch (e) {
+    msg.textContent = "Erro: " + e.message;
   }
 });
 
-btnSignOut.addEventListener('click', () => auth.signOut());
+// CADASTRAR
+document.getElementById("btnSignUp").addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const msg = document.getElementById("authMsg");
 
-// --- Funções de UI/DB ---
-async function renderContas(){
-  // limpa listas prévias
-  const existing = document.querySelector('.contas-list');
-  if(existing) existing.remove();
+  try {
+    await auth.createUserWithEmailAndPassword(email, pass);
+    msg.textContent = "";
+  } catch (e) {
+    msg.textContent = "Erro: " + e.message;
+  }
+});
 
-  const lista = document.createElement('section');
-  lista.classList.add('contas-list');
-  lista.innerHTML = '<h2>Minhas Contas</h2>';
-  document.body.appendChild(lista);
+// SAIR
+document.getElementById("btnSignOut").addEventListener("click", () => {
+  auth.signOut();
+});
 
-  const snapshot = await db.collection('contas').orderBy('tipo').get();
-  let entradas = 0, saidas = 0;
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const item = document.createElement('div');
-    item.className = 'conta-item';
-    const valor = (data.valor || 0);
-    if(data.tipo && data.tipo.toLowerCase().includes('renda')) entradas += valor;
-    if(data.tipo && data.tipo.toLowerCase().includes('despesa')) saidas += valor;
 
-    item.innerHTML = `
-      <strong>${data.tipo}:</strong> ${data.descricao || ''}
-      <div>Valor: <span class="valor" contenteditable="true" data-id="${doc.id}">${valor.toFixed(2)}</span></div>
-      <div class="muted">Venc: ${data.vencimento || '-'}</div>
-      <hr>
-    `;
-    lista.appendChild(item);
+// VERIFICA LOGIN AUTOMÁTICO
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    showAuthModal(true);
+    updateUserBar(null);
+    return;
+  }
+
+  showAuthModal(false);
+  updateUserBar(user);
+
+  // Carregar os dados automaticamente quando estiver logado
+  renderDashboard();
+  renderContas();
+});
+
+
+
+// -----------------------------------------------------
+// 3) DASHBOARD (Entradas / Saídas / Saldo / Meta)
+// -----------------------------------------------------
+
+async function renderDashboard() {
+  const uid = auth.currentUser.uid;
+
+  const snap = await db
+    .collection("contas")
+    .where("uid", "==", uid)
+    .get();
+
+  let entradas = 0;
+  let saidas = 0;
+
+  snap.forEach(doc => {
+    const c = doc.data();
+    const valor = parseFloat(c.valor || 0);
+
+    if (c.tipo === "Renda") entradas += valor;
+    if (c.tipo.includes("Despesa")) saidas += valor;
   });
 
-  incomeValue.textContent = `R$ ${entradas.toFixed(2)}`;
-  expenseValue.textContent = `R$ ${saidas.toFixed(2)}`;
-  balanceValue.textContent = `R$ ${(entradas - saidas).toFixed(2)}`;
+  document.getElementById("incomeValue").textContent = "R$ " + entradas;
+  document.getElementById("expenseValue").textContent = "R$ " + saidas;
+  document.getElementById("balanceValue").textContent = "R$ " + (entradas - saidas);
+}
 
-  // permite editar valores (on blur atualiza no Firestore)
-  document.querySelectorAll('.valor').forEach(el => {
-    el.addEventListener('blur', async () => {
-      const id = el.getAttribute('data-id');
-      const novo = parseFloat(el.textContent.replace(',', '.')) || 0;
-      try{
-        await db.collection('contas').doc(id).update({ valor: novo });
-        alert('💾 Valor atualizado!');
-        renderContas(); // re-render
-      }catch(e){
-        alert('Erro ao atualizar: ' + e.message);
+
+
+// -----------------------------------------------------
+// 4) IMPORTAÇÃO COMPLETA DA FAMÍLIA OLIVEIRA
+// -----------------------------------------------------
+
+document.getElementById("importData").addEventListener("click", async () => {
+  const uid = auth.currentUser.uid;
+  const now = firebase.firestore.Timestamp.now();
+  const status = document.getElementById("importStatus");
+
+  status.textContent = "Importando contas...";
+
+  const contas = [
+
+    // RENDAS
+    { tipo: "Renda", descricao: "Salário Thiago (média)", valor: 5500 },
+    { tipo: "Renda", descricao: "Salário Adriele (média)", valor: 600 },
+
+    // DESPESAS FIXAS
+    { tipo: "Despesa Fixa", descricao: "Aluguel", valor: 1600 },
+    { tipo: "Despesa Fixa", descricao: "Luz", valor: 278.96 },
+    { tipo: "Despesa Fixa", descricao: "Água", valor: 253.88 },
+    { tipo: "Despesa Fixa", descricao: "Mercado", valor: 500 },
+    { tipo: "Despesa Fixa", descricao: "Internet/Telefone", valor: 128.99 },
+    { tipo: "Despesa Fixa", descricao: "Carro (financiamento)", valor: 767.32 },
+    { tipo: "Despesa Fixa", descricao: "Cartão Nubank", valor: 232.78 },
+    { tipo: "Despesa Fixa", descricao: "Ailos", valor: 196.63 },
+    { tipo: "Despesa Fixa", descricao: "Internet TIM", valor: 48.99 },
+    { tipo: "Despesa Fixa", descricao: "Cartão Gabriel Sofá", valor: 250 },
+
+    // DESPESAS VARIÁVEIS
+    { tipo: "Despesa Variável", descricao: "Lazer", valor: 150 },
+    { tipo: "Despesa Variável", descricao: "Delivery", valor: 0 },
+    { tipo: "Despesa Variável", descricao: "Farmácia", valor: 150 },
+    { tipo: "Despesa Variável", descricao: "Gasolina", valor: 250 },
+    { tipo: "Despesa Variável", descricao: "Empréstimo Jeitto", valor: 221.1 },
+    { tipo: "Despesa Variável", descricao: "Empréstimo W", valor: 300 },
+    { tipo: "Despesa Variável", descricao: "MEI", valor: 100 },
+    { tipo: "Despesa Variável", descricao: "Manutenção Carro", valor: 2300 },
+    { tipo: "Despesa Variável", descricao: "DPVAT + Multa", valor: 232.5 },
+
+    // METAS
+    { tipo: "Meta", descricao: "Pagar Andrey", valor: 3000 },
+    { tipo: "Meta", descricao: "Pagar Gabriel", valor: 2000 },
+    { tipo: "Meta", descricao: "Limpar nome Claro", valor: 325.52 },
+    { tipo: "Meta", descricao: "Limpar nome Shopee", valor: 173.59 },
+    { tipo: "Meta", descricao: "Limpar nome Adriele", valor: 3000 },
+    { tipo: "Meta", descricao: "Poupança Emergencial", valor: 0 },
+    { tipo: "Meta", descricao: "Reservar 13º Thiago", valor: 0 },
+  ];
+
+  for (let c of contas) {
+    await db.collection("contas").add({
+      uid,
+      ...c,
+      criadoEm: now
+    });
+  }
+
+  status.textContent = "✔ Importação concluída!";
+  await renderDashboard();
+  await renderContas();
+});
+
+
+
+// -----------------------------------------------------
+// 5) RENDERIZAR LISTA DE CONTAS + EDIÇÃO
+// -----------------------------------------------------
+
+async function renderContas() {
+  const uid = auth.currentUser.uid;
+  const container = document.getElementById("contasContainer");
+
+  container.innerHTML = `
+    <h2 style="margin:10px 0 18px">Minhas Contas</h2>
+  `;
+
+  const snap = await db
+    .collection("contas")
+    .where("uid", "==", uid)
+    .get();
+
+  snap.forEach(doc => {
+    const c = doc.data();
+
+    const item = document.createElement("div");
+    item.className = "card";
+    item.style.marginBottom = "12px";
+
+    item.innerHTML = `
+      <strong>${c.tipo}</strong><br>
+      ${c.descricao}<br>
+      <span contenteditable="true" class="valor" data-id="${doc.id}">
+        ${c.valor}
+      </span>
+    `;
+
+    container.appendChild(item);
+  });
+
+  // Salvar valor editado
+  document.querySelectorAll(".valor").forEach(el => {
+    el.addEventListener("blur", async () => {
+      const id = el.getAttribute("data-id");
+      const novo = parseFloat(el.textContent);
+
+      if (isNaN(novo)) {
+        alert("Valor inválido");
+        return;
       }
+
+      await db.collection("contas").doc(id).update({ valor: novo });
+      renderDashboard();
     });
   });
 }
 
-// --- Meta (goals) simples ---
-async function renderGoal(){
-  const q = await db.collection('goals').limit(1).get();
-  if(q.empty){
-    goalProgress.value = 0;
-    goalLabel.textContent = 'Meta: R$ 0 / R$ 0';
-    return;
-  }
-  const doc = q.docs[0];
-  const g = doc.data();
-  const atual = g.atual || 0;
-  const alvo = g.alvo || 0;
-  const pct = alvo > 0 ? Math.min(100, Math.round((atual / alvo) * 100)) : 0;
-  goalProgress.value = pct;
-  goalLabel.textContent = `Meta: R$ ${atual.toFixed(2)} / R$ ${alvo.toFixed(2)}`;
-}
-addGoalBtn.addEventListener('click', async () => {
-  const alvo = parseFloat(prompt('Valor da meta (R$):') || '0');
-  if(isNaN(alvo) || alvo<=0) return;
-  await db.collection('goals').add({alvo, atual:0, createdAt: firebase.firestore.Timestamp.now()});
-  renderGoal();
-});
 
-// --- Adicionar receita/despesa rápido (apenas cria documento) ---
-addIncomeBtn.addEventListener('click', async () => {
-  const desc = prompt('Descrição da receita:','Venda / Recebimento') || 'Receita';
-  const valor = parseFloat(prompt('Valor (R$):','0') || '0');
-  if(isNaN(valor)) return alert('Valor inválido');
-  await db.collection('contas').add({
-    tipo:'Renda',
-    descricao: desc,
-    valor,
-    createdAt: firebase.firestore.Timestamp.now()
+
+// -----------------------------------------------------
+// 6) ADICIONAR RECEITA / DESPESA MANUAL
+// -----------------------------------------------------
+
+document.getElementById("addIncome").addEventListener("click", async () => {
+  const valor = parseFloat(prompt("Valor da receita:"));
+  if (isNaN(valor)) return;
+
+  await db.collection("contas").add({
+    uid: auth.currentUser.uid,
+    tipo: "Renda",
+    descricao: "Receita manual",
+    valor
   });
+
+  renderDashboard();
   renderContas();
 });
 
-addExpenseBtn.addEventListener('click', async () => {
-  const desc = prompt('Descrição da despesa:','Despesa') || 'Despesa';
-  const valor = parseFloat(prompt('Valor (R$):','0') || '0');
-  if(isNaN(valor)) return alert('Valor inválido');
-  await db.collection('contas').add({
-    tipo:'Despesa',
-    descricao: desc,
-    valor,
-    createdAt: firebase.firestore.Timestamp.now()
+document.getElementById("addExpense").addEventListener("click", async () => {
+  const valor = parseFloat(prompt("Valor da despesa:"));
+  if (isNaN(valor)) return;
+
+  await db.collection("contas").add({
+    uid: auth.currentUser.uid,
+    tipo: "Despesa Variável",
+    descricao: "Despesa manual",
+    valor
   });
+
+  renderDashboard();
   renderContas();
 });
 
-// --- Importar dataset "Família Oliveira" (exemplo com contas que você passou) ---
-importBtn.addEventListener('click', async () => {
-  if(!confirm('Importar dados da Família Oliveira: isso adicionará várias contas no seu Firestore. Continuar?')) return;
-  importStatus.textContent = 'Importando...';
-  try{
-    // lista de contas baseada nas informações que você enviou
-    const contas = [
-      // Rendas
-      { tipo: 'Renda', descricao: 'Salário Thiago (média)', valor: 5500 },
-      { tipo: 'Renda', descricao: 'Salário Adriele (média)', valor: 600 },
 
-      // Despesas Fixas
-      { tipo: 'Despesa Fixa', descricao: 'Aluguel', valor: 1600, vencimento: 'mensal' },
-      { tipo: 'Despesa Fixa', descricao: 'Luz', valor: 278.96 },
-      { tipo: 'Despesa Fixa', descricao: 'Água', valor: 137.26 },
-      { tipo: 'Despesa Fixa', descricao: 'Mercado', valor: 500 },
-      { tipo: 'Despesa Fixa', descricao: 'Internet/Telefone', valor: 128.99 },
-      { tipo: 'Despesa Fixa', descricao: 'Carro (parcela)', valor: 767.32 },
-      { tipo: 'Despesa Fixa', descricao: 'Cartão Nubank', valor: 232.78 },
-      { tipo: 'Despesa Fixa', descricao: 'Ailos (24x)', valor: 196.63 },
-      { tipo: 'Despesa Fixa', descricao: 'Internet TIM móvel', valor: 48.99 },
-      { tipo: 'Despesa Fixa', descricao: 'Cartão Gabriel (Sofá)', valor: 250.00 },
 
-      // Despesas variáveis
-      { tipo: 'Despesa Variável', descricao: 'Lazer', valor: 150 },
-      { tipo: 'Despesa Variável', descricao: 'Delivery', valor: 0 },
-      { tipo: 'Despesa Variável', descricao: 'Farmácia', valor: 150 },
-      { tipo: 'Despesa Variável', descricao: 'Gasolina', valor: 250 },
-      { tipo: 'Despesa Variável', descricao: 'Empréstimo Jeitto', valor: 221.10 },
-      { tipo: 'Despesa Variável', descricao: 'Empréstimo W (2x)', valor: 300 },
-      { tipo: 'Despesa Variável', descricao: 'MEI', valor: 100 },
-      // dívidas e metas
-      { tipo: 'Meta', descricao: 'Pagar Andrey', valor: 3000 },
-      { tipo: 'Meta', descricao: 'Pagar Gabriel', valor: 2000 },
-      { tipo: 'Meta', descricao: 'Limpar Serasa Thiago', valor: 325.52 },
-      { tipo: 'Meta', descricao: 'Limpar Serasa Shoppe', valor: 173.59 },
-      { tipo: 'Meta', descricao: 'Limpar nome Adriele', valor: 3000 },
-      { tipo: 'Meta', descricao: 'Manutenção preventiva carro', valor: 2300 },
-      { tipo: 'Meta', descricao: 'DPVAT + Multa', valor: 232.50 }
-    ];
+// -----------------------------------------------------
+// 7) ADICIONAR META
+// -----------------------------------------------------
 
-    // grava cada conta
-    const batch = db.batch ? db.batch() : null;
-    for(const c of contas){
-      const ref = db.collection('contas').doc(); // novo doc
-      if(batch) batch.set(ref, {...c, createdAt: firebase.firestore.Timestamp.now()});
-      else await ref.set({...c, createdAt: firebase.firestore.Timestamp.now()});
-    }
-    if(batch) await batch.commit();
+document.getElementById("addGoal").addEventListener("click", async () => {
+  const descricao = prompt("Descrição da Meta:");
+  if (!descricao) return;
 
-    importStatus.textContent = '✅ Contas importadas com sucesso!';
-    alert('Contas importadas com sucesso!');
-    renderContas();
-  }catch(e){
-    importStatus.textContent = 'Erro ao importar: ' + e.message;
-    alert('Erro ao importar: ' + e.message);
-  }
+  const valor = parseFloat(prompt("Valor da Meta:"));
+  if (isNaN(valor)) return;
+
+  await db.collection("contas").add({
+    uid: auth.currentUser.uid,
+    tipo: "Meta",
+    descricao,
+    valor
+  });
+
+  renderContas();
 });
-
-// Auto-render se usuário já logado
-setTimeout(()=> {
-  if(auth.currentUser) { renderContas(); renderGoal(); }
-}, 800);
