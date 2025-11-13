@@ -1,76 +1,17 @@
-/* same theme as previous final to preserve look */
-:root{
-  --bg:#fbfbfd;
-  --card:#ffffff;
-  --muted:#7b7f87;
-  --primary:#7b61ff;
-  --accent1:#ffd7e6;
-  --accent2:#fff1b8;
-  --radius:18px;
-  --gap:14px;
-  --pad:16px;
-  --shadow: 0 10px 30px rgba(15,15,15,0.06);
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+/* login background */
+.login-body {
+  margin:0;padding:0;
+  font-family:-apple-system,Roboto;
+  background:linear-gradient(180deg,#00384e,#009e72);
+  display:flex;align-items:center;justify-content:center;height:100vh;
 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:var(--font-sans);
-  background:linear-gradient(180deg,var(--bg),#fff);
-  -webkit-font-smoothing:antialiased;
-  color:#111;
-  padding:18px;
+.login-logo {font-size:48px;color:#aafff5;text-shadow:0 0 12px #00ffd5;text-align:center;}
+.login-subtitle{text-align:center;color:#e8fff8;margin-bottom:22px;}
+.glass {
+  background:rgba(255,255,255,0.15);backdrop-filter:blur(12px);
+  border-radius:18px;padding:22px;width:300px;
+  box-shadow:0 0 15px rgba(0,255,200,0.2);
 }
-.top{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
-.brand{font-weight:800;font-size:16px}
-.primary{background:var(--primary);color:#fff;border:0;padding:10px 12px;border-radius:999px}
-.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px 10px;border-radius:999px}
-
-.summary{display:flex;gap:12px;margin-bottom:12px}
-.summary-item{flex:1;background:linear-gradient(90deg,#fff,#fff);padding:12px;border-radius:14px;box-shadow:var(--shadow);border-left:6px solid var(--primary)}
-.summary .label{font-size:13px;color:var(--muted)}
-.summary .value{font-weight:800;font-size:18px;margin-top:6px}
-
-.controls{display:flex;gap:8px;align-items:center;margin-bottom:14px}
-.controls select,input{padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);flex:0 0 140px}
-.controls input{flex:1}
-
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--gap);align-items:start}
-.card{background:var(--card);border-radius:16px;padding:0;box-shadow:var(--shadow);overflow:hidden;position:relative;border:3px solid transparent}
-.card .cover{height:110px;background:#eee;background-size:cover;background-position:center}
-.card .pad{padding:12px}
-.card .type{font-size:12px;color:var(--muted);margin-bottom:6px}
-.card .title{font-weight:800;font-size:16px}
-.card .subtitle{color:var(--muted);font-size:13px;margin-top:4px}
-.card .value{font-size:20px;font-weight:800;margin-top:8px}
-.card .meta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.tag{padding:6px 8px;border-radius:999px;font-size:12px;background:#f2f2f7}
-.actions{position:absolute;right:10px;top:10px;display:flex;gap:8px}
-
-.progress{height:10px;background:#f2f2f7;border-radius:999px;overflow:hidden;margin-top:10px}
-.progress > i{display:block;height:100%;background:linear-gradient(90deg,#ffd56b,#ff9ab1);width:0%}
-
-.badge{display:inline-block;padding:6px 8px;border-radius:999px;font-size:12px;margin-top:8px}
-
-.card[data-type="income"] .cover{background:linear-gradient(90deg,#d1f7e7,#bff6ff)}
-.card[data-type="fixed"] .cover{background:linear-gradient(90deg,#fff4d6,#ffd6e6)}
-.card[data-type="variable"] .cover{background:linear-gradient(90deg,#e9ecff,#f3e8ff)}
-.card[data-type="goal"] .cover{background:linear-gradient(90deg,#ffd6a5,#ffb6b9)}
-.card[data-type="limit"] .cover{background:linear-gradient(90deg,#dff7ff,#d6fff1)}
-.card[data-type="cofrinho"] .cover{background:linear-gradient(90deg,#fff1e6,#fff6d6)}
-.card[data-type="investment"] .cover{background:linear-gradient(90deg,#e6f7ff,#e6ffe6)}
-
-/* modal */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60}
-.modal.hidden{display:none}
-.modal-card{background:var(--card);padding:18px;border-radius:12px;min-width:300px;max-width:520px;box-shadow:var(--shadow)}
-.modal-card h3{margin-top:0}
-.modal-card label{display:block;margin-bottom:8px;font-size:13px}
-.modal-card input, .modal-card select{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)}
-
-/* responsive */
-@media (max-width:420px){
-  .cards-grid{grid-template-columns:1fr}
-  .summary{flex-direction:column}
-}
+.form-input{width:100%;padding:12px;border-radius:12px;border:none;margin-bottom:12px;}
+.btn-primary{width:100%;padding:12px;background:#00cc94;border:none;border-radius:12px;color:#fff;font-size:16px;}
+.btn-outline{width:100%;padding:12px;background:transparent;border:2px solid #aafff5;border-radius:12px;color:#e9fffb;font-size:16px;}

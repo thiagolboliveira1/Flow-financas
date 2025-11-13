@@ -1,89 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>FLOW — Família Oliveira (Cards - Fix Import)</title>
-<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FLOW • Dashboard</title>
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<header class="top">
-  <div class="brand">FLOW — Família Oliveira</div>
-  <div class="actions">
-    <button id="importBtn" class="ghost">Importar CSV</button>
-    <button id="exportBtn" class="primary">Exportar CSV</button>
-    <button id="syncBtn" class="ghost">Conectar Firebase</button>
-  </div>
-</header>
-
-<main>
-  <section class="summary">
-    <div class="summary-item">
-      <div class="label">Renda</div>
-      <div id="totalIncome" class="value">R$ 0,00</div>
-    </div>
-    <div class="summary-item">
-      <div class="label">Despesas</div>
-      <div id="totalExpense" class="value">R$ 0,00</div>
-    </div>
-    <div class="summary-item">
-      <div class="label">Saldo</div>
-      <div id="balance" class="value">R$ 0,00</div>
-    </div>
-  </section>
-
-  <section class="controls">
-    <button id="newItem" class="primary">+ Novo item</button>
-    <select id="filterType">
-      <option value="all">Todos</option>
-      <option value="income">Renda</option>
-      <option value="fixed">Despesa Fixa</option>
-      <option value="variable">Despesa Variável</option>
-      <option value="goal">Meta</option>
-      <option value="limit">Limite</option>
-      <option value="cofrinho">Cofrinho</option>
-      <option value="investment">Investimento</option>
-    </select>
-    <input id="search" placeholder="Pesquisar..." />
-  </section>
-
-  <section id="cards" class="cards-grid" aria-live="polite"></section>
-</main>
-
-<!-- modal -->
-<div id="modal" class="modal hidden" role="dialog" aria-modal="true">
-  <form id="itemForm" class="modal-card">
-    <h3 id="modalTitle">Novo item</h3>
-    <label>Título<input name="title" required></label>
-    <label>Subtítulo<input name="subtitle"></label>
-    <label>Tipo
-      <select name="type">
-        <option value="income">Renda</option>
-        <option value="fixed">Despesa Fixa</option>
-        <option value="variable">Despesa Variável</option>
-        <option value="goal">Meta</option>
-        <option value="limit">Limite</option>
-        <option value="cofrinho">Cofrinho</option>
-        <option value="investment">Investimento</option>
-      </select>
-    </label>
-    <label>Responsável<input name="owner"></label>
-    <label>Valor (R$)<input name="value" inputmode="decimal" required></label>
-    <label>Meta / Alvo (R$) <input name="target" inputmode="decimal"></label>
-    <label>Valor guardado / gasto até agora (R$) <input name="progress" inputmode="decimal"></label>
-    <label>Data<input name="date" type="date"></label>
-    <label>Tags<input name="tags" placeholder="separe por vírgula"></label>
-    <label>Imagem (URL) <input name="image" placeholder="opcional"></label>
-    <div class="modal-actions">
-      <button type="button" id="cancelBtn" class="ghost">Cancelar</button>
-      <button type="submit" class="primary">Salvar</button>
-    </div>
-  </form>
-</div>
-
-<input id="fileInput" type="file" accept=".csv" style="display:none" />
-
-<script src="firebase.js"></script>
-<script src="app.js"></script>
+<h2 style="text-align:center;">FLOW Dashboard</h2>
+<button onclick="logout()">Sair</button>
+<div id="cards"></div>
+<script type="module" src="app.js"></script>
 </body>
 </html>
