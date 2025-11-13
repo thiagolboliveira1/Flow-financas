@@ -1,17 +1,1 @@
-/* login background */
-.login-body {
-  margin:0;padding:0;
-  font-family:-apple-system,Roboto;
-  background:linear-gradient(180deg,#00384e,#009e72);
-  display:flex;align-items:center;justify-content:center;height:100vh;
-}
-.login-logo {font-size:48px;color:#aafff5;text-shadow:0 0 12px #00ffd5;text-align:center;}
-.login-subtitle{text-align:center;color:#e8fff8;margin-bottom:22px;}
-.glass {
-  background:rgba(255,255,255,0.15);backdrop-filter:blur(12px);
-  border-radius:18px;padding:22px;width:300px;
-  box-shadow:0 0 15px rgba(0,255,200,0.2);
-}
-.form-input{width:100%;padding:12px;border-radius:12px;border:none;margin-bottom:12px;}
-.btn-primary{width:100%;padding:12px;background:#00cc94;border:none;border-radius:12px;color:#fff;font-size:16px;}
-.btn-outline{width:100%;padding:12px;background:transparent;border:2px solid #aafff5;border-radius:12px;color:#e9fffb;font-size:16px;}
+/* styles */
