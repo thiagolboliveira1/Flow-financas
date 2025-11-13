@@ -1,12 +1,10 @@
 {
-  "name": "Flow",
-  "short_name": "Flow",
-  "start_url": "./index.html",
+  "name": "FLOW",
+  "short_name": "FLOW",
+  "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#F5F5F7",
-  "theme_color": "#BFA6FF",
-  "description": "Flow — Controle financeiro pessoal e familiar, com metas e sincronização automática.",
+  "background_color": "#ffffff",
+  "theme_color": "#9F7AEA",
   "icons": [
     {
       "src": "icon-192.png",
