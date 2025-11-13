@@ -1,29 +1,33 @@
-// app.js - enhanced cards prototype with metas, cofrinho, limites, investimentos
+// app.js - fixed import behavior, dedupe on load + merge/replace choice during import
 const STORAGE_KEY = 'flow_cards_vfinal';
+const IMPORT_FLAG = 'flow_import_done';
 let items = [];
 
 const sample = [
-  // metas (goal) with target and progress
   {id:'g1', type:'goal', title:'Viagem Bali', subtitle:'Meta de viagem', owner:'Família', value:15000, target:15000, progress:1200, date:'2025-12-01', image:'', tags:['viagem','curto prazo']},
-  {id:'g2', type:'goal', title:'Macbook 14 Pro', subtitle:'Meta tech', owner:'Thiago', value:15000, target:15000, progress:3000, date:'2025-12-01', image:'', tags:['eletrônicos']},
-  // cofrinho (monthly savings goals)
   {id:'c1', type:'cofrinho', title:'Cofrinho Mensal', subtitle:'Meta do mês', owner:'Thiago', value:300, target:3600, progress:1700, date:'2025', image:'', tags:['poupança']},
-  // limits per category
   {id:'l1', type:'limit', title:'Limite - Mercado', subtitle:'Alimentação', owner:'Casa', value:1000, progress:930, date:'2025-06', image:'', tags:['limite','mercado']},
-  {id:'l2', type:'limit', title:'Limite - Combustível', subtitle:'Transporte', owner:'Thiago', value:1000, progress:700, date:'2025-06', image:'', tags:['limite','combustível']},
-  // investments
   {id:'i1', type:'investment', title:'CDB', subtitle:'Mercado Pago', owner:'Investimentos', value:10000, date:'2025-01-01', image:'', tags:['renda fixa']},
-  {id:'i2', type:'investment', title:'Bitcoin', subtitle:'C6 Bank', owner:'Investimentos', value:2500, date:'2025-01-01', image:'', tags:['renda variável']},
-  // incomes and expenses (examples)
   {id:'e1', type:'income', title:'Salário Thiago (média)', subtitle:'Renda', owner:'Thiago', value:5500, date:'2025-01-01', tags:[]},
-  {id:'e2', type:'variable', title:'Gasolina', subtitle:'Transporte', owner:'Thiago', value:350, date:'2025-06-12', tags:[]},
-  {id:'e3', type:'fixed', title:'Internet/Telefone', subtitle:'Despesa Fixa', owner:'Casa', value:128.99, date:'2025-01-05', tags:[]},
 ];
 
+// on load: if user data exists, dedupe it automatically
 function load(){
   const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){ try{ items = JSON.parse(raw); }catch(e){ items = sample; } }
-  else { items = sample; save(); }
+  if(raw){
+    try{
+      items = JSON.parse(raw);
+      const before = items.length;
+      items = dedupeArray(items);
+      if(items.length !== before){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        console.log('FLOW: duplicates removed on load. Before:', before, 'After:', items.length);
+      }
+    }catch(e){
+      items = sample;
+      save();
+    }
+  } else { items = sample; save(); }
   render();
 }
 
@@ -56,7 +60,6 @@ function render(){
         <div class="meta"></div>
       </div>`;
 
-    // add specific UI parts per type
     const meta = el.querySelector('.meta');
     if(i.type==='goal' || i.type==='cofrinho' || i.type==='limit'){
       const target = Number(i.target||i.value||0);
@@ -68,19 +71,15 @@ function render(){
         <div class="badge">${pct}%</div>`;
     } else if(i.type==='investment'){
       meta.innerHTML = `<div class="badge">Investido: ${formatBR(i.value)}</div>`;
-    } else if(i.type==='limit'){
-      // handled above in goal-like
     } else {
       meta.innerHTML = `<div class="tag">${(i.tags||[]).join(', ')}</div>`;
     }
 
-    // actions
     const actions = document.createElement('div'); actions.className='actions';
     const editBtn = document.createElement('button'); editBtn.className='btn-small'; editBtn.innerText='Editar';
     const delBtn = document.createElement('button'); delBtn.className='btn-small'; delBtn.innerText='×';
     actions.appendChild(editBtn); actions.appendChild(delBtn); el.appendChild(actions);
 
-    // inline edit handlers
     el.querySelector('.title').addEventListener('blur', e=>{ const it=find(i.id); it.title = e.target.innerText.trim(); save(); });
     editBtn.addEventListener('click', ()=> openModal(i));
     delBtn.addEventListener('click', ()=>{ if(confirm('Apagar item?')){ remove(i.id); } });
@@ -95,67 +94,125 @@ function find(id){ return items.find(x=>x.id===id); }
 function remove(id){ items = items.filter(x=>x.id!==id); save(); }
 function newid(){ return Date.now().toString(36); }
 
-// modal interactions
-function openModal(item){
-  const modal = document.getElementById('modal'); const form = document.getElementById('itemForm');
-  modal.classList.remove('hidden'); form.dataset.edit = item ? item.id : '';
-  document.getElementById('modalTitle').innerText = item ? 'Editar item' : 'Novo item';
-  form.title.value = item ? item.title : '';
-  form.subtitle.value = item ? item.subtitle : '';
-  form.type.value = item ? item.type : 'variable';
-  form.owner.value = item ? item.owner : '';
-  form.value.value = item ? item.value : '';
-  form.target.value = item ? item.target||'' : '';
-  form.progress.value = item ? item.progress||'' : '';
-  form.date.value = item ? item.date : '';
-  form.tags.value = item ? (item.tags||[]).join(',') : '';
-  form.image.value = item ? item.image||'' : '';
+// dedupe helper - keeps first occurrence based on key composed of type+title+value+date+owner
+function keyOf(it){ return `${it.type}||${(it.title||'').trim().toLowerCase()}||${String(it.value||'0')}||${it.date||''}||${(it.owner||'').trim().toLowerCase()}`; }
+function dedupeArray(arr){
+  const seen = new Set(); const out = [];
+  for(const it of arr){
+    const k = keyOf(it);
+    if(!seen.has(k)){ seen.add(k); out.push(it); }
+  }
+  return out;
 }
 
-document.getElementById('newItem').addEventListener('click', ()=> openModal());
-document.getElementById('cancelBtn').addEventListener('click', ()=> document.getElementById('modal').classList.add('hidden'));
-document.getElementById('itemForm').addEventListener('submit', e=>{
-  e.preventDefault(); const f=e.target; const id=f.dataset.edit || newid();
-  const obj = {
-    id,
-    title: f.title.value.trim(),
-    subtitle: f.subtitle.value.trim(),
-    type: f.type.value,
-    owner: f.owner.value.trim(),
-    value: parseFloat((f.value.value||'0').replace(',','.'))||0,
-    target: parseFloat((f.target.value||'0').replace(',','.'))||0,
-    progress: parseFloat((f.progress.value||'0').replace(',','.'))||0,
-    date: f.date.value || '',
-    tags: f.tags.value ? f.tags.value.split(',').map(t=>t.trim()) : [],
-    image: f.image.value || ''
-  };
-  const existing = find(id);
-  if(existing) Object.assign(existing,obj); else items.unshift(obj);
-  f.reset(); document.getElementById('modal').classList.add('hidden'); save();
+// merge items: avoids duplicates by content; updates if id exists
+function mergeItemsFromArray(parsedItems){
+  const existing = items.slice();
+  const indexById = new Map(existing.filter(e=>e.id).map(e=>[e.id,e]));
+  const seenKeys = new Set(existing.map(e=>keyOf(e)));
+  for(const it of parsedItems){
+    if(it.id && indexById.has(it.id)){
+      const exist = indexById.get(it.id);
+      Object.assign(exist, it);
+      continue;
+    }
+    const k = keyOf(it);
+    if(seenKeys.has(k)) continue;
+    if(!it.id) it.id = newid() + Math.random().toString(36).slice(2,6);
+    existing.unshift(it);
+    seenKeys.add(k);
+  }
+  items = existing;
+  save();
+  localStorage.setItem(IMPORT_FLAG, new Date().toISOString());
+  alert('Importação mesclada concluída. Total itens: ' + items.length);
+}
+
+// replace items (wipe and import)
+function replaceItems(parsedItems){
+  const cleaned = dedupeArray(parsedItems.map(it=>{ if(!it.id) it.id = newid()+Math.random().toString(36).slice(2,6); return it; }));
+  items = cleaned;
+  save();
+  localStorage.setItem(IMPORT_FLAG, new Date().toISOString());
+  alert('Substituição concluída. Total itens: ' + items.length);
+}
+
+// CSV parsing (robust split for quoted fields)
+function parseCSVToArray(text){
+  const lines = text.split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+  const headers = lines.shift().split(',').map(h=>h.replace(/"/g,'').trim());
+  const parsed = lines.map(l=>{
+    const cols = l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g,''));
+    const obj = {};
+    headers.forEach((h,i)=> obj[h]=cols[i]||'');
+    if(obj.tags) obj.tags = obj.tags.split(';').filter(Boolean);
+    obj.value = parseFloat((obj.value||'0').replace(',','.'))||0;
+    obj.target = parseFloat((obj.target||'0').replace(',','.'))||0;
+    obj.progress = parseFloat((obj.progress||'0').replace(',','.'))||0;
+    obj.id = obj.id || '';
+    obj.image = obj.image || '';
+    return obj;
+  });
+  return parsed;
+}
+
+// import handler: ask user Merge (OK) or Replace (Cancel)
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  if(localStorage.getItem(IMPORT_FLAG)){
+    const proceed = confirm('Já existe uma importação anterior. Aperte OK para MESCLAR (evita duplicatas) ou Cancel para SUBSTITUIR (apagar e importar).');
+    if(!proceed){
+      document.getElementById('fileInput').dataset.mode = 'replace';
+      document.getElementById('fileInput').click(); return;
+    } else {
+      document.getElementById('fileInput').dataset.mode = 'merge';
+      document.getElementById('fileInput').click(); return;
+    }
+  } else {
+    document.getElementById('fileInput').dataset.mode = 'merge';
+    document.getElementById('fileInput').click();
+  }
 });
 
-// CSV export/import (full schema)
+document.getElementById('fileInput').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  const mode = e.target.dataset.mode || 'merge';
+  reader.onload = ev=>{
+    const parsed = parseCSVToArray(ev.target.result);
+    if(!parsed.length) return alert('Arquivo CSV vazio ou inválido.');
+    if(mode === 'merge') mergeItemsFromArray(parsed);
+    else replaceItems(parsed);
+    e.target.value = '';
+    e.target.dataset.mode = '';
+  };
+  reader.readAsText(f,'utf-8');
+});
+
+// exportCSV (same schema)
 function exportCSV(){
   const cols = ['id','type','title','subtitle','owner','value','target','progress','date','tags','image'];
   const rows = [cols.join(',')].concat(items.map(it=>cols.map(c=>{
     let v = it[c]===undefined?'':it[c];
     if(Array.isArray(v)) v = v.join(';');
-    return `"${String(v).replace(/"/g,'""')}"`;
+    return `"`+String(v).replace(/"/g,'""')+`"`;
   }).join(',')));
-  const blob = new Blob([rows.join('\\n')],{type:'text/csv;charset=utf-8;'});
+  const blob = new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='flow_export.csv'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
 }
 document.getElementById('exportBtn').addEventListener('click', exportCSV);
-document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ parseCSV(ev.target.result); }; reader.readAsText(f,'utf-8'); });
-function parseCSV(text){
-  const lines = text.split(/\\r?\\n/).filter(Boolean); if(!lines.length) return;
-  const headers = lines.shift().split(',').map(h=>h.replace(/"/g,'').trim());
-  const parsed = lines.map(l=>{ const cols = l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g,'')); const obj={}; headers.forEach((h,i)=> obj[h]=cols[i]||''); if(obj.tags) obj.tags = obj.tags.split(';').filter(Boolean); obj.value = parseFloat((obj.value||'0').replace(',','.'))||0; obj.target = parseFloat((obj.target||'0').replace(',','.'))||0; obj.progress = parseFloat((obj.progress||'0').replace(',','.'))||0; obj.id = obj.id || newid(); return obj; });
-  items = parsed; save(); alert('Importado ('+items.length+' itens)');
-}
 
-// placeholder firebase action (requires firebaseConfig in firebase.js)
+document.getElementById('newItem').addEventListener('click', ()=> openModal());
+document.getElementById('cancelBtn').addEventListener('click', ()=> document.getElementById('modal').classList.add('hidden'));
+document.getElementById('itemForm').addEventListener('submit', e=>{
+  e.preventDefault(); const f=e.target; const id=f.dataset.edit || newid();
+  const obj = { id, title: f.title.value.trim(), subtitle: f.subtitle.value.trim(), type: f.type.value, owner: f.owner.value.trim(), value: parseFloat((f.value.value||'0').replace(',','.'))||0, target: parseFloat((f.target.value||'0').replace(',','.'))||0, progress: parseFloat((f.progress.value||'0').replace(',','.'))||0, date: f.date.value || '', tags: f.tags.value ? f.tags.value.split(',').map(t=>t.trim()) : [], image: f.image.value || '' };
+  const existing = find(id);
+  if(existing) Object.assign(existing,obj); else items.unshift(obj);
+  f.reset(); document.getElementById('modal').classList.add('hidden'); save();
+});
+
+// placeholder firebase action
 document.getElementById('syncBtn').addEventListener('click', ()=> alert('Para conectar, cole seu firebaseConfig em firebase.js e reabra.'));
 
 // init

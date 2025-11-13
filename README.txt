@@ -1,32 +1,22 @@
 
-FLOW — Cards (FINAL)
-====================
+FLOW — Cards (FIXED IMPORT)
+==========================
 
-O pacote que você recebeu aqui é uma versão **card-based** do FLOW com os tipos que você mostrou nas imagens:
-- Metas (goal) com progresso / porcentagem
-- Cofrinho (cofrinho mensal / anual)
-- Limites por categoria (mostra gasto atual + saldo)
-- Investimentos (resumo)
-- Rendas / Despesas (cards clássicos)
-- Export / Import CSV com colunas completas
-- Armazenamento em LocalStorage (funciona offline)
-- Placeholder para Firebase (firebase.js) — cole seu firebaseConfig se quiser sincronizar
+O que foi corrigido nesta versão (feito agora):
+- Ao carregar, o app verifica dados no LocalStorage e remove duplicatas automaticamente (mantendo a primeira ocorrência).
+- Importação CSV agora pergunta se você quer MESCLAR (OK) ou SUBSTITUIR (Cancelar) quando já existe uma importação anterior.
+  - Mesclar: adiciona novos items sem duplicar (compara por tipo+titulo+valor+data+responsável).
+  - Substituir: apaga os dados atuais e importa somente os registros do CSV (também remove duplicatas internas).
+- Após import bem-sucedida, uma flag é salva em LocalStorage para evitar importações acidentais sem aviso.
+- Mantive o layout card-based (visual) e funcionalidade de export/import, edição inline e modal.
 
-Como abrir
+Como usar (rapidamente):
 1. Baixe e extraia o ZIP.
-2. Abra `index.html` no Koder ou no Safari (iPhone).
-3. Para conectar ao Firebase: abra `firebase.js` e cole seu firebaseConfig (objeto). Depois eu posso te ajudar a ligar Firestore/Realtime + autenticação se quiser.
+2. Abra `index.html` no Koder ou Safari (iPhone).
+3. Se você já importou acidentalmente antes, ao abrir a nova versão ela tentará remover duplicatas automaticamente.
+4. Para importar um CSV novo: toque em "Importar CSV". Se já houver uma importação anterior, você será perguntado se quer MESCLAR (OK) ou SUBSTITUIR (Cancel).
+5. Exporte backup antes de testar, caso queira (botão Exportar CSV).
 
-O que eu já fiz (conforme você pediu - opção 3: tema + firebase-ready)
-- Apliquei visual no estilo das imagens (cards com capa, badges, progresso).
-- Adicionei exemplos preenchidos para metas, cofres, limites, investimentos e despesas.
-- Mantive export/import CSV e edição inline (título e salvar por modal).
-- Deixei `firebase.js` pronto para você colar o objeto sem expor nada sensível aqui.
-
-Próximos passos que eu posso fazer já agora (escolha uma):
-A) Integrar Firestore (salvar/ler automaticamente) — você precisa me enviar seu firebaseConfig.  
-B) Ajustar responsividade/estética exatamente com suas cores/imagens (posso usar as imagens que você mandou como capa dos cards).  
-C) Gerar versão `.zip` com seu firebaseConfig já embutido (você precisa enviar o objeto firebaseConfig aqui).
-
-Se quiser que eu já integre com seu Firebase e teste leitura/escrita, **cole aqui** seu firebaseConfig (o objeto com apiKey, authDomain, projectId, etc.).
-Se preferir, só me diga qual dos próximos passos (A, B ou C) você quer que eu faça agora.
+Se quiser, eu posso:
+- Aplicar a remoção de duplicatas direto no LocalStorage atual sem você precisar abrir a nova versão (rodando um script aqui).
+- Colar seu firebaseConfig e integrar Firestore/Autenticação.
