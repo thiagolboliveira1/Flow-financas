@@ -1,53 +1,89 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FLOW | Finanças</title>
-
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#9F7AEA" />
+  <style>
+    /* Pequeno CSS inline só pra garantir layout básico (você usa style.css depois) */
+    :root{
+      --accent:#9F7AEA; --bg:#fff; --card:#f8f8fb; --text:#111
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;color:var(--text);background:var(--bg)}
+    header.app-header{background:var(--accent);padding:22px 18px;color:#fff}
+    header.app-header h1{margin:0;font-size:28px;letter-spacing:0.5px}
+    main{padding:20px}
+    .kpis{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
+    @media(min-width:720px){.kpis{flex-direction:row}}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
+    .card h3{margin:0 0 8px;font-size:20px}
+    .card span{font-size:20px;font-weight:600}
+    .goal{margin-bottom:18px}
+    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+    .btn{background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:12px;font-weight:600}
+    .muted{opacity:.75;color:#666;margin-top:8px}
+    /* modal auth */
+    .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:999}
+    .auth-card{background:#fff;border-radius:12px;padding:18px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(2,6,23,.24)}
+    .auth-card h2{margin:0 0 12px}
+    .auth-card input{width:100%;margin:8px 0;padding:10px;border:1px solid #e6e6ef;border-radius:8px}
+    .auth-card .row{display:flex;gap:8px;margin-top:6px}
+    .auth-card button{flex:1;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff}
+    .userbar{position:fixed;right:12px;bottom:12px;background:#000;color:#fff;border-radius:999px;padding:8px 12px;display:flex;gap:8px;align-items:center;z-index:1000}
+    .userbar button{background:#fff;color:#000;border:none;border-radius:999px;padding:6px 10px}
+  </style>
 </head>
-
 <body>
   <header class="app-header">
     <h1>FLOW</h1>
-    <button id="themeToggle" aria-label="Alternar tema">🌙</button>
   </header>
 
   <main>
     <!-- KPIs -->
-    <section class="kpis">
-      <div class="card"><h3>Entradas</h3><span id="incomeValue">R$ 0</span></div>
-      <div class="card"><h3>Saídas</h3><span id="expenseValue">R$ 0</span></div>
-      <div class="card"><h3>Saldo</h3><span id="balanceValue">R$ 0</span></div>
+    <section class="kpis" aria-label="Indicadores">
+      <div class="card">
+        <h3>Entradas</h3>
+        <span id="incomeValue">R$ 0</span>
+      </div>
+      <div class="card">
+        <h3>Saídas</h3>
+        <span id="expenseValue">R$ 0</span>
+      </div>
+      <div class="card">
+        <h3>Saldo</h3>
+        <span id="balanceValue">R$ 0</span>
+      </div>
     </section>
 
     <!-- Meta -->
     <section class="goal">
       <h2>🎯 Meta Principal</h2>
-      <progress id="goalProgress" value="0" max="100"></progress>
-      <p id="goalLabel">Meta: R$ 0 / R$ 0</p>
-      <button id="addGoal">+ Adicionar Meta</button>
+      <progress id="goalProgress" value="0" max="100" style="width:100%;height:12px;border-radius:8px"></progress>
+      <p id="goalLabel" class="muted">Meta: R$ 0 / R$ 0</p>
+      <button id="addGoal" class="btn" style="background:transparent;color:var(--accent);border:2px solid var(--accent);padding:10px 14px;border-radius:10px;margin-top:8px">+ Adicionar Meta</button>
     </section>
 
     <!-- Ações -->
-    <section class="actions">
-      <button id="addIncome">+ Receita</button>
-      <button id="addExpense">− Despesa</button>
-      <button id="importData">📦 Importar Família Oliveira</button>
-      <p id="importStatus" class="muted"></p>
+    <section class="actions" aria-label="Ações">
+      <button id="addIncome" class="btn">+ Receita</button>
+      <button id="addExpense" class="btn">− Despesa</button>
+      <button id="importData" class="btn">📦 Importar Família Oliveira</button>
+      <p id="importStatus" class="muted" style="width:100%"></p>
     </section>
 
-    <!-- Listagem de contas (será adicionada dinamicamente) -->
+    <!-- Onde vamos renderizar as contas -->
+    <section id="contasContainer" style="margin-top:20px"></section>
   </main>
 
-  <!-- Modal de autenticação -->
-  <div id="authModal" class="auth-modal" aria-hidden="true">
-    <div class="auth-card">
+  <!-- Modal simples de autenticação (DENTRO do body) -->
+  <div id="authModal" class="auth-modal" aria-hidden="true" style="display:none">
+    <div class="auth-card" role="dialog" aria-label="Login FLOW">
       <h2>Entrar no FLOW</h2>
-      <input id="email" type="email" placeholder="Seu e-mail" />
-      <input id="password" type="password" placeholder="Sua senha" />
+      <input id="email" type="email" placeholder="Seu e-mail" autocomplete="username" />
+      <input id="password" type="password" placeholder="Sua senha" autocomplete="current-password" />
       <div class="row">
         <button id="btnSignIn">Entrar</button>
         <button id="btnSignUp">Criar conta</button>
@@ -56,17 +92,34 @@
     </div>
   </div>
 
-  <!-- Barra usuário -->
+  <!-- Barra do usuário (aparece quando logado) -->
   <div id="userBar" class="userbar" style="display:none">
     <span id="userEmail"></span>
     <button id="btnSignOut">Sair</button>
   </div>
 
-  <!-- Firebase compat scripts (funciona direto no navegador) -->
+  <!-- FIREBASE (compat) - carregue antes do app.js -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
+  <!-- app.js (o seu script principal; garanta que exista no repo) -->
   <script src="app.js"></script>
+
+  <script>
+    // fallback simples: se o app.js não controlar o modal, abre-lo para testes
+    // (apenas durante setup — remova depois que tudo estiver OK)
+    window.addEventListener('load', () => {
+      // se não existe função initAuth no seu app.js, mostramos o modal para você logar;
+      // seu app.js deve controlar visibilidade após autenticação.
+      if (typeof initAuth !== 'function') {
+        const modal = document.getElementById('authModal');
+        if (modal) {
+          modal.style.display = 'flex';
+          modal.setAttribute('aria-hidden','false');
+        }
+      }
+    });
+  </script>
 </body>
 </html>
