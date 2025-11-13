@@ -1,125 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FLOW | Finanças</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#9F7AEA" />
-  <style>
-    /* Pequeno CSS inline só pra garantir layout básico (você usa style.css depois) */
-    :root{
-      --accent:#9F7AEA; --bg:#fff; --card:#f8f8fb; --text:#111
-    }
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;color:var(--text);background:var(--bg)}
-    header.app-header{background:var(--accent);padding:22px 18px;color:#fff}
-    header.app-header h1{margin:0;font-size:28px;letter-spacing:0.5px}
-    main{padding:20px}
-    .kpis{display:flex;flex-direction:column;gap:14px;margin-bottom:20px}
-    @media(min-width:720px){.kpis{flex-direction:row}}
-    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,.06)}
-    .card h3{margin:0 0 8px;font-size:20px}
-    .card span{font-size:20px;font-weight:600}
-    .goal{margin-bottom:18px}
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
-    .btn{background:var(--accent);color:#fff;border:none;padding:12px 18px;border-radius:12px;font-weight:600}
-    .muted{opacity:.75;color:#666;margin-top:8px}
-    /* modal auth */
-    .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:999}
-    .auth-card{background:#fff;border-radius:12px;padding:18px;max-width:420px;width:100%;box-shadow:0 12px 40px rgba(2,6,23,.24)}
-    .auth-card h2{margin:0 0 12px}
-    .auth-card input{width:100%;margin:8px 0;padding:10px;border:1px solid #e6e6ef;border-radius:8px}
-    .auth-card .row{display:flex;gap:8px;margin-top:6px}
-    .auth-card button{flex:1;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff}
-    .userbar{position:fixed;right:12px;bottom:12px;background:#000;color:#fff;border-radius:999px;padding:8px 12px;display:flex;gap:8px;align-items:center;z-index:1000}
-    .userbar button{background:#fff;color:#000;border:none;border-radius:999px;padding:6px 10px}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>FLOW — Família Oliveira (Cards vFINAL)</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>FLOW</h1>
-  </header>
+<header class="top">
+  <div class="brand">FLOW — Família Oliveira</div>
+  <div class="actions">
+    <button id="importBtn" class="ghost">Importar CSV</button>
+    <button id="exportBtn" class="primary">Exportar CSV</button>
+    <button id="syncBtn" class="ghost">Conectar Firebase</button>
+  </div>
+</header>
 
-  <main>
-    <!-- KPIs -->
-    <section class="kpis" aria-label="Indicadores">
-      <div class="card">
-        <h3>Entradas</h3>
-        <span id="incomeValue">R$ 0</span>
-      </div>
-      <div class="card">
-        <h3>Saídas</h3>
-        <span id="expenseValue">R$ 0</span>
-      </div>
-      <div class="card">
-        <h3>Saldo</h3>
-        <span id="balanceValue">R$ 0</span>
-      </div>
-    </section>
-
-    <!-- Meta -->
-    <section class="goal">
-      <h2>🎯 Meta Principal</h2>
-      <progress id="goalProgress" value="0" max="100" style="width:100%;height:12px;border-radius:8px"></progress>
-      <p id="goalLabel" class="muted">Meta: R$ 0 / R$ 0</p>
-      <button id="addGoal" class="btn" style="background:transparent;color:var(--accent);border:2px solid var(--accent);padding:10px 14px;border-radius:10px;margin-top:8px">+ Adicionar Meta</button>
-    </section>
-
-    <!-- Ações -->
-    <section class="actions" aria-label="Ações">
-      <button id="addIncome" class="btn">+ Receita</button>
-      <button id="addExpense" class="btn">− Despesa</button>
-      <button id="importData" class="btn">📦 Importar Família Oliveira</button>
-      <p id="importStatus" class="muted" style="width:100%"></p>
-    </section>
-
-    <!-- Onde vamos renderizar as contas -->
-    <section id="contasContainer" style="margin-top:20px"></section>
-  </main>
-
-  <!-- Modal simples de autenticação (DENTRO do body) -->
-  <div id="authModal" class="auth-modal" aria-hidden="true" style="display:none">
-    <div class="auth-card" role="dialog" aria-label="Login FLOW">
-      <h2>Entrar no FLOW</h2>
-      <input id="email" type="email" placeholder="Seu e-mail" autocomplete="username" />
-      <input id="password" type="password" placeholder="Sua senha" autocomplete="current-password" />
-      <div class="row">
-        <button id="btnSignIn">Entrar</button>
-        <button id="btnSignUp">Criar conta</button>
-      </div>
-      <p id="authMsg" class="muted"></p>
+<main>
+  <section class="summary">
+    <div class="summary-item">
+      <div class="label">Renda</div>
+      <div id="totalIncome" class="value">R$ 0,00</div>
     </div>
-  </div>
+    <div class="summary-item">
+      <div class="label">Despesas</div>
+      <div id="totalExpense" class="value">R$ 0,00</div>
+    </div>
+    <div class="summary-item">
+      <div class="label">Saldo</div>
+      <div id="balance" class="value">R$ 0,00</div>
+    </div>
+  </section>
 
-  <!-- Barra do usuário (aparece quando logado) -->
-  <div id="userBar" class="userbar" style="display:none">
-    <span id="userEmail"></span>
-    <button id="btnSignOut">Sair</button>
-  </div>
+  <section class="controls">
+    <button id="newItem" class="primary">+ Novo item</button>
+    <select id="filterType">
+      <option value="all">Todos</option>
+      <option value="income">Renda</option>
+      <option value="fixed">Despesa Fixa</option>
+      <option value="variable">Despesa Variável</option>
+      <option value="goal">Meta</option>
+      <option value="limit">Limite</option>
+      <option value="cofrinho">Cofrinho</option>
+      <option value="investment">Investimento</option>
+    </select>
+    <input id="search" placeholder="Pesquisar..." />
+  </section>
 
-  <!-- FIREBASE (compat) - carregue antes do app.js -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <section id="cards" class="cards-grid" aria-live="polite"></section>
+</main>
 
-  <!-- app.js (o seu script principal; garanta que exista no repo) -->
-  <script src="app.js"></script>
+<!-- modal -->
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+  <form id="itemForm" class="modal-card">
+    <h3 id="modalTitle">Novo item</h3>
+    <label>Título<input name="title" required></label>
+    <label>Subtítulo<input name="subtitle"></label>
+    <label>Tipo
+      <select name="type">
+        <option value="income">Renda</option>
+        <option value="fixed">Despesa Fixa</option>
+        <option value="variable">Despesa Variável</option>
+        <option value="goal">Meta</option>
+        <option value="limit">Limite</option>
+        <option value="cofrinho">Cofrinho</option>
+        <option value="investment">Investimento</option>
+      </select>
+    </label>
+    <label>Responsável<input name="owner"></label>
+    <label>Valor (R$)<input name="value" inputmode="decimal" required></label>
+    <label>Meta / Alvo (R$) <input name="target" inputmode="decimal"></label>
+    <label>Valor guardado / gasto até agora (R$) <input name="progress" inputmode="decimal"></label>
+    <label>Data<input name="date" type="date"></label>
+    <label>Tags<input name="tags" placeholder="separe por vírgula"></label>
+    <label>Imagem (URL) <input name="image" placeholder="opcional"></label>
+    <div class="modal-actions">
+      <button type="button" id="cancelBtn" class="ghost">Cancelar</button>
+      <button type="submit" class="primary">Salvar</button>
+    </div>
+  </form>
+</div>
 
-  <script>
-    // fallback simples: se o app.js não controlar o modal, abre-lo para testes
-    // (apenas durante setup — remova depois que tudo estiver OK)
-    window.addEventListener('load', () => {
-      // se não existe função initAuth no seu app.js, mostramos o modal para você logar;
-      // seu app.js deve controlar visibilidade após autenticação.
-      if (typeof initAuth !== 'function') {
-        const modal = document.getElementById('authModal');
-        if (modal) {
-          modal.style.display = 'flex';
-          modal.setAttribute('aria-hidden','false');
-        }
-      }
-    });
-  </script>
+<input id="fileInput" type="file" accept=".csv" style="display:none" />
+
+<script src="firebase.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

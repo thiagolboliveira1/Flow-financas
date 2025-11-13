@@ -1,305 +1,162 @@
-// =========================================
-//  FLOW — APP.JS COMPLETO E OTIMIZADO
-//  Thiago Oliveira — 2025
-// =========================================
+// app.js - enhanced cards prototype with metas, cofrinho, limites, investimentos
+const STORAGE_KEY = 'flow_cards_vfinal';
+let items = [];
 
+const sample = [
+  // metas (goal) with target and progress
+  {id:'g1', type:'goal', title:'Viagem Bali', subtitle:'Meta de viagem', owner:'Família', value:15000, target:15000, progress:1200, date:'2025-12-01', image:'', tags:['viagem','curto prazo']},
+  {id:'g2', type:'goal', title:'Macbook 14 Pro', subtitle:'Meta tech', owner:'Thiago', value:15000, target:15000, progress:3000, date:'2025-12-01', image:'', tags:['eletrônicos']},
+  // cofrinho (monthly savings goals)
+  {id:'c1', type:'cofrinho', title:'Cofrinho Mensal', subtitle:'Meta do mês', owner:'Thiago', value:300, target:3600, progress:1700, date:'2025', image:'', tags:['poupança']},
+  // limits per category
+  {id:'l1', type:'limit', title:'Limite - Mercado', subtitle:'Alimentação', owner:'Casa', value:1000, progress:930, date:'2025-06', image:'', tags:['limite','mercado']},
+  {id:'l2', type:'limit', title:'Limite - Combustível', subtitle:'Transporte', owner:'Thiago', value:1000, progress:700, date:'2025-06', image:'', tags:['limite','combustível']},
+  // investments
+  {id:'i1', type:'investment', title:'CDB', subtitle:'Mercado Pago', owner:'Investimentos', value:10000, date:'2025-01-01', image:'', tags:['renda fixa']},
+  {id:'i2', type:'investment', title:'Bitcoin', subtitle:'C6 Bank', owner:'Investimentos', value:2500, date:'2025-01-01', image:'', tags:['renda variável']},
+  // incomes and expenses (examples)
+  {id:'e1', type:'income', title:'Salário Thiago (média)', subtitle:'Renda', owner:'Thiago', value:5500, date:'2025-01-01', tags:[]},
+  {id:'e2', type:'variable', title:'Gasolina', subtitle:'Transporte', owner:'Thiago', value:350, date:'2025-06-12', tags:[]},
+  {id:'e3', type:'fixed', title:'Internet/Telefone', subtitle:'Despesa Fixa', owner:'Casa', value:128.99, date:'2025-01-05', tags:[]},
+];
 
-// -----------------------------------------------------
-// 1) CONFIGURAÇÃO DO FIREBASE
-// -----------------------------------------------------
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCrxOosiL8YqIB8yf5v9xq0Dje_AiE31pU",
-  authDomain: "flow-financeiro-61209.firebaseapp.com",
-  projectId: "flow-financeiro-61209",
-  storageBucket: "flow-financeiro-61209.firebasestorage.app",
-  messagingSenderId: "370100494331",
-  appId: "1:370100494331:web:b4eaad52efa988ab15355e"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-
-
-// -----------------------------------------------------
-// 2) CONTROLE DE AUTENTICAÇÃO
-// -----------------------------------------------------
-
-function showAuthModal(show = true) {
-  const modal = document.getElementById("authModal");
-  if (!modal) return;
-  modal.style.display = show ? "flex" : "none";
+function load(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){ try{ items = JSON.parse(raw); }catch(e){ items = sample; } }
+  else { items = sample; save(); }
+  render();
 }
 
-function updateUserBar(user) {
-  const bar = document.getElementById("userBar");
-  const emailLabel = document.getElementById("userEmail");
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); renderSummary(); }
 
-  if (user) {
-    emailLabel.textContent = user.email;
-    bar.style.display = "flex";
-  } else {
-    bar.style.display = "none";
-  }
+function formatBR(v){ return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+function renderSummary(){
+  const income = items.filter(i=>i.type==='income').reduce((s,i)=>s+Number(i.value||0),0);
+  const expense = items.filter(i=>i.type!=='income' && i.type!=='investment' && i.type!=='goal' && i.type!=='cofrinho' && i.type!=='limit').reduce((s,i)=>s+Number(i.value||0),0);
+  document.getElementById('totalIncome').innerText = formatBR(income);
+  document.getElementById('totalExpense').innerText = formatBR(expense);
+  document.getElementById('balance').innerText = formatBR(income-expense);
 }
 
-// LOGIN
-document.getElementById("btnSignIn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const pass = document.getElementById("password").value.trim();
-  const msg = document.getElementById("authMsg");
+function render(){
+  const container = document.getElementById('cards'); container.innerHTML='';
+  const filter = document.getElementById('filterType').value;
+  const q = document.getElementById('search').value.toLowerCase();
+  items.filter(i=>{ if(filter!=='all' && i.type!==filter) return false; if(q && !( (i.title||'') + (i.subtitle||'') + (i.owner||'') ).toLowerCase().includes(q)) return false; return true; }).forEach(i=>{
+    const el = document.createElement('article'); el.className='card'; el.dataset.id=i.id; el.dataset.type=i.type;
+    const coverStyle = i.image ? `style="background-image:url('${i.image}')"` : '';
+    el.innerHTML = `
+      <div class="cover" ${coverStyle}></div>
+      <div class="pad">
+        <div class="type">${i.subtitle||i.type}</div>
+        <div class="title" contenteditable="true">${escapeHtml(i.title)}</div>
+        <div class="subtitle">${i.owner||''}</div>
+        <div class="value">${formatBR(i.value)}</div>
+        <div class="meta"></div>
+      </div>`;
 
-  try {
-    await auth.signInWithEmailAndPassword(email, pass);
-    msg.textContent = "";
-  } catch (e) {
-    msg.textContent = "Erro: " + e.message;
-  }
-});
+    // add specific UI parts per type
+    const meta = el.querySelector('.meta');
+    if(i.type==='goal' || i.type==='cofrinho' || i.type==='limit'){
+      const target = Number(i.target||i.value||0);
+      const progress = Number(i.progress||0);
+      const pct = target>0 ? Math.max(0, Math.min(100, Math.round((progress/target)*100))) : 0;
+      meta.innerHTML = `<div class="badge">Meta: ${formatBR(target)}</div>
+        <div class="badge">Guardado: ${formatBR(progress)}</div>
+        <div class="progress"><i style="width:${pct}%"></i></div>
+        <div class="badge">${pct}%</div>`;
+    } else if(i.type==='investment'){
+      meta.innerHTML = `<div class="badge">Investido: ${formatBR(i.value)}</div>`;
+    } else if(i.type==='limit'){
+      // handled above in goal-like
+    } else {
+      meta.innerHTML = `<div class="tag">${(i.tags||[]).join(', ')}</div>`;
+    }
 
-// CADASTRAR
-document.getElementById("btnSignUp").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const pass = document.getElementById("password").value.trim();
-  const msg = document.getElementById("authMsg");
+    // actions
+    const actions = document.createElement('div'); actions.className='actions';
+    const editBtn = document.createElement('button'); editBtn.className='btn-small'; editBtn.innerText='Editar';
+    const delBtn = document.createElement('button'); delBtn.className='btn-small'; delBtn.innerText='×';
+    actions.appendChild(editBtn); actions.appendChild(delBtn); el.appendChild(actions);
 
-  try {
-    await auth.createUserWithEmailAndPassword(email, pass);
-    msg.textContent = "";
-  } catch (e) {
-    msg.textContent = "Erro: " + e.message;
-  }
-});
+    // inline edit handlers
+    el.querySelector('.title').addEventListener('blur', e=>{ const it=find(i.id); it.title = e.target.innerText.trim(); save(); });
+    editBtn.addEventListener('click', ()=> openModal(i));
+    delBtn.addEventListener('click', ()=>{ if(confirm('Apagar item?')){ remove(i.id); } });
 
-// SAIR
-document.getElementById("btnSignOut").addEventListener("click", () => {
-  auth.signOut();
-});
-
-
-// VERIFICA LOGIN AUTOMÁTICO
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    showAuthModal(true);
-    updateUserBar(null);
-    return;
-  }
-
-  showAuthModal(false);
-  updateUserBar(user);
-
-  // Carregar os dados automaticamente quando estiver logado
-  renderDashboard();
-  renderContas();
-});
-
-
-
-// -----------------------------------------------------
-// 3) DASHBOARD (Entradas / Saídas / Saldo / Meta)
-// -----------------------------------------------------
-
-async function renderDashboard() {
-  const uid = auth.currentUser.uid;
-
-  const snap = await db
-    .collection("contas")
-    .where("uid", "==", uid)
-    .get();
-
-  let entradas = 0;
-  let saidas = 0;
-
-  snap.forEach(doc => {
-    const c = doc.data();
-    const valor = parseFloat(c.valor || 0);
-
-    if (c.tipo === "Renda") entradas += valor;
-    if (c.tipo.includes("Despesa")) saidas += valor;
+    container.appendChild(el);
   });
-
-  document.getElementById("incomeValue").textContent = "R$ " + entradas;
-  document.getElementById("expenseValue").textContent = "R$ " + saidas;
-  document.getElementById("balanceValue").textContent = "R$ " + (entradas - saidas);
+  renderSummary();
 }
 
+function escapeHtml(s){ return (s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function find(id){ return items.find(x=>x.id===id); }
+function remove(id){ items = items.filter(x=>x.id!==id); save(); }
+function newid(){ return Date.now().toString(36); }
 
-
-// -----------------------------------------------------
-// 4) IMPORTAÇÃO COMPLETA DA FAMÍLIA OLIVEIRA
-// -----------------------------------------------------
-
-document.getElementById("importData").addEventListener("click", async () => {
-  const uid = auth.currentUser.uid;
-  const now = firebase.firestore.Timestamp.now();
-  const status = document.getElementById("importStatus");
-
-  status.textContent = "Importando contas...";
-
-  const contas = [
-
-    // RENDAS
-    { tipo: "Renda", descricao: "Salário Thiago (média)", valor: 5500 },
-    { tipo: "Renda", descricao: "Salário Adriele (média)", valor: 600 },
-
-    // DESPESAS FIXAS
-    { tipo: "Despesa Fixa", descricao: "Aluguel", valor: 1600 },
-    { tipo: "Despesa Fixa", descricao: "Luz", valor: 278.96 },
-    { tipo: "Despesa Fixa", descricao: "Água", valor: 253.88 },
-    { tipo: "Despesa Fixa", descricao: "Mercado", valor: 500 },
-    { tipo: "Despesa Fixa", descricao: "Internet/Telefone", valor: 128.99 },
-    { tipo: "Despesa Fixa", descricao: "Carro (financiamento)", valor: 767.32 },
-    { tipo: "Despesa Fixa", descricao: "Cartão Nubank", valor: 232.78 },
-    { tipo: "Despesa Fixa", descricao: "Ailos", valor: 196.63 },
-    { tipo: "Despesa Fixa", descricao: "Internet TIM", valor: 48.99 },
-    { tipo: "Despesa Fixa", descricao: "Cartão Gabriel Sofá", valor: 250 },
-
-    // DESPESAS VARIÁVEIS
-    { tipo: "Despesa Variável", descricao: "Lazer", valor: 150 },
-    { tipo: "Despesa Variável", descricao: "Delivery", valor: 0 },
-    { tipo: "Despesa Variável", descricao: "Farmácia", valor: 150 },
-    { tipo: "Despesa Variável", descricao: "Gasolina", valor: 250 },
-    { tipo: "Despesa Variável", descricao: "Empréstimo Jeitto", valor: 221.1 },
-    { tipo: "Despesa Variável", descricao: "Empréstimo W", valor: 300 },
-    { tipo: "Despesa Variável", descricao: "MEI", valor: 100 },
-    { tipo: "Despesa Variável", descricao: "Manutenção Carro", valor: 2300 },
-    { tipo: "Despesa Variável", descricao: "DPVAT + Multa", valor: 232.5 },
-
-    // METAS
-    { tipo: "Meta", descricao: "Pagar Andrey", valor: 3000 },
-    { tipo: "Meta", descricao: "Pagar Gabriel", valor: 2000 },
-    { tipo: "Meta", descricao: "Limpar nome Claro", valor: 325.52 },
-    { tipo: "Meta", descricao: "Limpar nome Shopee", valor: 173.59 },
-    { tipo: "Meta", descricao: "Limpar nome Adriele", valor: 3000 },
-    { tipo: "Meta", descricao: "Poupança Emergencial", valor: 0 },
-    { tipo: "Meta", descricao: "Reservar 13º Thiago", valor: 0 },
-  ];
-
-  for (let c of contas) {
-    await db.collection("contas").add({
-      uid,
-      ...c,
-      criadoEm: now
-    });
-  }
-
-  status.textContent = "✔ Importação concluída!";
-  await renderDashboard();
-  await renderContas();
-});
-
-
-
-// -----------------------------------------------------
-// 5) RENDERIZAR LISTA DE CONTAS + EDIÇÃO
-// -----------------------------------------------------
-
-async function renderContas() {
-  const uid = auth.currentUser.uid;
-  const container = document.getElementById("contasContainer");
-
-  container.innerHTML = `
-    <h2 style="margin:10px 0 18px">Minhas Contas</h2>
-  `;
-
-  const snap = await db
-    .collection("contas")
-    .where("uid", "==", uid)
-    .get();
-
-  snap.forEach(doc => {
-    const c = doc.data();
-
-    const item = document.createElement("div");
-    item.className = "card";
-    item.style.marginBottom = "12px";
-
-    item.innerHTML = `
-      <strong>${c.tipo}</strong><br>
-      ${c.descricao}<br>
-      <span contenteditable="true" class="valor" data-id="${doc.id}">
-        ${c.valor}
-      </span>
-    `;
-
-    container.appendChild(item);
-  });
-
-  // Salvar valor editado
-  document.querySelectorAll(".valor").forEach(el => {
-    el.addEventListener("blur", async () => {
-      const id = el.getAttribute("data-id");
-      const novo = parseFloat(el.textContent);
-
-      if (isNaN(novo)) {
-        alert("Valor inválido");
-        return;
-      }
-
-      await db.collection("contas").doc(id).update({ valor: novo });
-      renderDashboard();
-    });
-  });
+// modal interactions
+function openModal(item){
+  const modal = document.getElementById('modal'); const form = document.getElementById('itemForm');
+  modal.classList.remove('hidden'); form.dataset.edit = item ? item.id : '';
+  document.getElementById('modalTitle').innerText = item ? 'Editar item' : 'Novo item';
+  form.title.value = item ? item.title : '';
+  form.subtitle.value = item ? item.subtitle : '';
+  form.type.value = item ? item.type : 'variable';
+  form.owner.value = item ? item.owner : '';
+  form.value.value = item ? item.value : '';
+  form.target.value = item ? item.target||'' : '';
+  form.progress.value = item ? item.progress||'' : '';
+  form.date.value = item ? item.date : '';
+  form.tags.value = item ? (item.tags||[]).join(',') : '';
+  form.image.value = item ? item.image||'' : '';
 }
 
-
-
-// -----------------------------------------------------
-// 6) ADICIONAR RECEITA / DESPESA MANUAL
-// -----------------------------------------------------
-
-document.getElementById("addIncome").addEventListener("click", async () => {
-  const valor = parseFloat(prompt("Valor da receita:"));
-  if (isNaN(valor)) return;
-
-  await db.collection("contas").add({
-    uid: auth.currentUser.uid,
-    tipo: "Renda",
-    descricao: "Receita manual",
-    valor
-  });
-
-  renderDashboard();
-  renderContas();
+document.getElementById('newItem').addEventListener('click', ()=> openModal());
+document.getElementById('cancelBtn').addEventListener('click', ()=> document.getElementById('modal').classList.add('hidden'));
+document.getElementById('itemForm').addEventListener('submit', e=>{
+  e.preventDefault(); const f=e.target; const id=f.dataset.edit || newid();
+  const obj = {
+    id,
+    title: f.title.value.trim(),
+    subtitle: f.subtitle.value.trim(),
+    type: f.type.value,
+    owner: f.owner.value.trim(),
+    value: parseFloat((f.value.value||'0').replace(',','.'))||0,
+    target: parseFloat((f.target.value||'0').replace(',','.'))||0,
+    progress: parseFloat((f.progress.value||'0').replace(',','.'))||0,
+    date: f.date.value || '',
+    tags: f.tags.value ? f.tags.value.split(',').map(t=>t.trim()) : [],
+    image: f.image.value || ''
+  };
+  const existing = find(id);
+  if(existing) Object.assign(existing,obj); else items.unshift(obj);
+  f.reset(); document.getElementById('modal').classList.add('hidden'); save();
 });
 
-document.getElementById("addExpense").addEventListener("click", async () => {
-  const valor = parseFloat(prompt("Valor da despesa:"));
-  if (isNaN(valor)) return;
+// CSV export/import (full schema)
+function exportCSV(){
+  const cols = ['id','type','title','subtitle','owner','value','target','progress','date','tags','image'];
+  const rows = [cols.join(',')].concat(items.map(it=>cols.map(c=>{
+    let v = it[c]===undefined?'':it[c];
+    if(Array.isArray(v)) v = v.join(';');
+    return `"${String(v).replace(/"/g,'""')}"`;
+  }).join(',')));
+  const blob = new Blob([rows.join('\\n')],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='flow_export.csv'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+}
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const reader=new FileReader(); reader.onload=ev=>{ parseCSV(ev.target.result); }; reader.readAsText(f,'utf-8'); });
+function parseCSV(text){
+  const lines = text.split(/\\r?\\n/).filter(Boolean); if(!lines.length) return;
+  const headers = lines.shift().split(',').map(h=>h.replace(/"/g,'').trim());
+  const parsed = lines.map(l=>{ const cols = l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c=>c.replace(/^"|"$/g,'')); const obj={}; headers.forEach((h,i)=> obj[h]=cols[i]||''); if(obj.tags) obj.tags = obj.tags.split(';').filter(Boolean); obj.value = parseFloat((obj.value||'0').replace(',','.'))||0; obj.target = parseFloat((obj.target||'0').replace(',','.'))||0; obj.progress = parseFloat((obj.progress||'0').replace(',','.'))||0; obj.id = obj.id || newid(); return obj; });
+  items = parsed; save(); alert('Importado ('+items.length+' itens)');
+}
 
-  await db.collection("contas").add({
-    uid: auth.currentUser.uid,
-    tipo: "Despesa Variável",
-    descricao: "Despesa manual",
-    valor
-  });
+// placeholder firebase action (requires firebaseConfig in firebase.js)
+document.getElementById('syncBtn').addEventListener('click', ()=> alert('Para conectar, cole seu firebaseConfig em firebase.js e reabra.'));
 
-  renderDashboard();
-  renderContas();
-});
-
-
-
-// -----------------------------------------------------
-// 7) ADICIONAR META
-// -----------------------------------------------------
-
-document.getElementById("addGoal").addEventListener("click", async () => {
-  const descricao = prompt("Descrição da Meta:");
-  if (!descricao) return;
-
-  const valor = parseFloat(prompt("Valor da Meta:"));
-  if (isNaN(valor)) return;
-
-  await db.collection("contas").add({
-    uid: auth.currentUser.uid,
-    tipo: "Meta",
-    descricao,
-    valor
-  });
-
-  renderContas();
-});
+// init
+load();
