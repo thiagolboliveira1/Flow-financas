@@ -1,1 +1,53 @@
-<html><body>Login placeholder</body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FLOW • Login</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="login-body">
+
+<div class="login-container">
+
+    <h1 class="login-logo">FLOW</h1>
+    <p class="login-subtitle">Finanças da Família Oliveira</p>
+
+    <div class="glass">
+
+        <!-- Campo de E-mail -->
+        <input 
+            id="email" 
+            class="form-input" 
+            type="email" 
+            placeholder="E-mail" 
+            autocomplete="username"
+        />
+
+        <!-- Campo de Senha -->
+        <input 
+            id="password" 
+            class="form-input" 
+            type="password" 
+            placeholder="Senha"
+            autocomplete="current-password"
+        />
+
+        <!-- Botão Entrar -->
+        <button id="loginBtn" class="btn-primary">
+            Entrar
+        </button>
+
+        <!-- Botão Criar Conta -->
+        <button id="registerBtn" class="btn-outline">
+            Criar Conta
+        </button>
+
+    </div>
+</div>
+
+<script type="module" src="auth.js"></script>
+
+</body>
+</html>
